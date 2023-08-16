@@ -2,11 +2,8 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
+	api "internal/pokeapi"
 	"os"
 )
 
@@ -15,27 +12,13 @@ var options map[string]cliCommand = make(map[string]cliCommand)
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*Config) error
-}
-
-type Config struct {
-	Next     *string
-	Previous *string
-	Results  []Result
-}
-
-func (c *Config) updateNext(v string) {
-	c.Next = &v
-}
-
-type Result struct {
-	Name string
+	callback    func(*api.Config) error
 }
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	buildOptions()
-	config := &Config{Next: nil, Previous: nil, Results: nil}
+	config := api.NewConfig()
 
 	for {
 		fmt.Print("pokedex > ")
@@ -73,24 +56,8 @@ func buildOptions() {
 	}
 }
 
-func commandMap(config *Config) error {
-	if config.Next == nil {
-		config.updateNext("https://pokeapi.co/api/v2/location-area?offset=0&limit=20")
-	}
-
-	// TODO: Move this API call to an internal package
-	resp, err := http.Get(*config.Next)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(responseBody, &config)
+func commandMap(config *api.Config) error {
+	err := config.Map()
 	if err != nil {
 		return err
 	}
@@ -102,24 +69,8 @@ func commandMap(config *Config) error {
 	return nil
 }
 
-func commandMapB(config *Config) error {
-	if config.Previous == nil {
-		return errors.New("cannot go back any further")
-	}
-
-	// TODO: Move this API call to an internal package
-	resp, err := http.Get(*config.Previous)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(responseBody, &config)
+func commandMapB(config *api.Config) error {
+	err := config.MapB()
 	if err != nil {
 		return err
 	}
@@ -131,7 +82,7 @@ func commandMapB(config *Config) error {
 	return nil
 }
 
-func commandHelp(config *Config) error {
+func commandHelp(config *api.Config) error {
 	fmt.Println()
 	fmt.Printf("Welcome to the Pokedex!\n")
 	fmt.Printf("Usage: \n")
@@ -145,7 +96,7 @@ func commandHelp(config *Config) error {
 	return nil
 }
 
-func commandExit(config *Config) error {
+func commandExit(config *api.Config) error {
 	os.Exit(0)
 	return nil
 }
