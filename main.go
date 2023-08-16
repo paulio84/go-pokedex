@@ -3,8 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
-	api "internal/pokeapi"
 	"os"
+
+	"github.com/paulio84/go-pokedex/internal/pokeapi"
 )
 
 var commands map[string]cliCommand = make(map[string]cliCommand)
@@ -12,13 +13,13 @@ var commands map[string]cliCommand = make(map[string]cliCommand)
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*api.Config) error
+	callback    func(*pokeapi.Config) error
 }
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	buildOptions()
-	config := api.NewConfig()
+	config := pokeapi.NewConfig()
 
 	for {
 		fmt.Print("pokedex > ")
@@ -56,7 +57,7 @@ func buildOptions() {
 	}
 }
 
-func commandMap(config *api.Config) error {
+func commandMap(config *pokeapi.Config) error {
 	err := config.Map()
 	if err != nil {
 		return err
@@ -69,7 +70,7 @@ func commandMap(config *api.Config) error {
 	return nil
 }
 
-func commandMapB(config *api.Config) error {
+func commandMapB(config *pokeapi.Config) error {
 	err := config.MapB()
 	if err != nil {
 		return err
@@ -82,7 +83,7 @@ func commandMapB(config *api.Config) error {
 	return nil
 }
 
-func commandHelp(config *api.Config) error {
+func commandHelp(config *pokeapi.Config) error {
 	fmt.Println()
 	fmt.Printf("Welcome to the Pokedex!\n")
 	fmt.Printf("Usage: \n")
@@ -96,7 +97,7 @@ func commandHelp(config *api.Config) error {
 	return nil
 }
 
-func commandExit(config *api.Config) error {
+func commandExit(config *pokeapi.Config) error {
 	os.Exit(0)
 	return nil
 }
