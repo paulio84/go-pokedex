@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var options map[string]cliCommand = make(map[string]cliCommand)
+var commands map[string]cliCommand = make(map[string]cliCommand)
 
 type cliCommand struct {
 	name        string
@@ -24,7 +24,7 @@ func main() {
 		fmt.Print("pokedex > ")
 		scanner.Scan()
 
-		if command, ok := options[scanner.Text()]; ok {
+		if command, ok := commands[scanner.Text()]; ok {
 			err := command.callback(config)
 			if err != nil {
 				fmt.Printf("error: %s\n", err.Error())
@@ -34,22 +34,22 @@ func main() {
 }
 
 func buildOptions() {
-	options["help"] = cliCommand{
+	commands["help"] = cliCommand{
 		name:        "help",
 		description: "Displays a help message",
 		callback:    commandHelp,
 	}
-	options["exit"] = cliCommand{
+	commands["exit"] = cliCommand{
 		name:        "exit",
 		description: "Exit the Pokedex",
 		callback:    commandExit,
 	}
-	options["map"] = cliCommand{
+	commands["map"] = cliCommand{
 		name:        "map",
 		description: "Explore the next 20 location areas in the Pokemon world",
 		callback:    commandMap,
 	}
-	options["mapb"] = cliCommand{
+	commands["mapb"] = cliCommand{
 		name:        "mapb",
 		description: "Explore the previous 20 location areas in the Pokemon world",
 		callback:    commandMapB,
@@ -88,7 +88,7 @@ func commandHelp(config *api.Config) error {
 	fmt.Printf("Usage: \n")
 	fmt.Println()
 
-	for _, command := range options {
+	for _, command := range commands {
 		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	fmt.Println()
