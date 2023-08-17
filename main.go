@@ -18,8 +18,8 @@ type cliCommand struct {
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	buildOptions()
 	config := pokeapi.NewConfig()
+	buildCommands()
 
 	for {
 		fmt.Print("pokedex > ")
@@ -34,7 +34,7 @@ func main() {
 	}
 }
 
-func buildOptions() {
+func buildCommands() {
 	commands["help"] = cliCommand{
 		name:        "help",
 		description: "Displays a help message",
