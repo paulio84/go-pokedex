@@ -66,6 +66,24 @@ func buildCommands() {
 		description: "Display the previous location areas in the Pokemon world",
 		callback:    commandMapB,
 	}
+	commands["explore"] = cliCommand{
+		name:        "explore [area_name]",
+		description: "Explore a given area [area_name] and display the Pokemon found there",
+		callback:    commandExplore,
+	}
+}
+
+func commandExplore(areaName string) error {
+	results, err := api.Explore(areaName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %s...\n", areaName)
+	fmt.Println("Found Pokemon:")
+	displayResults(results)
+
+	return nil
 }
 
 func commandMap(areaName string) error {
@@ -74,9 +92,7 @@ func commandMap(areaName string) error {
 		return err
 	}
 
-	for _, result := range results {
-		fmt.Println(result.Display())
-	}
+	displayResults(results)
 
 	return nil
 }
@@ -87,9 +103,7 @@ func commandMapB(areaName string) error {
 		return err
 	}
 
-	for _, result := range results {
-		fmt.Println(result.Display())
-	}
+	displayResults(results)
 
 	return nil
 }
@@ -111,4 +125,10 @@ func commandHelp(areaName string) error {
 func commandExit(areaName string) error {
 	os.Exit(0)
 	return nil
+}
+
+func displayResults(results []pokeapi.Result) {
+	for _, result := range results {
+		fmt.Println(result.Display())
+	}
 }
