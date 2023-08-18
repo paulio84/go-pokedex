@@ -4,29 +4,38 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/paulio84/go-pokedex/internal/pokeapi"
 )
 
-var commands map[string]cliCommand = make(map[string]cliCommand)
+var commands map[string]cliCommand
+var api *pokeapi.Api
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*pokeapi.Config) error
+	callback    func(string) error
 }
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	config := pokeapi.NewConfig()
+	api = pokeapi.NewAPI()
 	buildCommands()
 
 	for {
+		areaName := ""
+
 		fmt.Print("pokedex > ")
 		scanner.Scan()
 
-		if command, ok := commands[scanner.Text()]; ok {
-			err := command.callback(config)
+		words := strings.Fields(scanner.Text())
+		if len(words) > 1 {
+			areaName = words[1]
+		}
+
+		if command, ok := commands[words[0]]; ok {
+			err := command.callback(areaName)
 			if err != nil {
 				fmt.Printf("error: %s\n", err.Error())
 			}
@@ -35,6 +44,8 @@ func main() {
 }
 
 func buildCommands() {
+	commands = make(map[string]cliCommand)
+
 	commands["help"] = cliCommand{
 		name:        "help",
 		description: "Displays a help message",
@@ -47,43 +58,43 @@ func buildCommands() {
 	}
 	commands["map"] = cliCommand{
 		name:        "map",
-		description: "Explore the next 20 location areas in the Pokemon world",
+		description: "Display the next location areas in the Pokemon world",
 		callback:    commandMap,
 	}
 	commands["mapb"] = cliCommand{
 		name:        "mapb",
-		description: "Explore the previous 20 location areas in the Pokemon world",
+		description: "Display the previous location areas in the Pokemon world",
 		callback:    commandMapB,
 	}
 }
 
-func commandMap(config *pokeapi.Config) error {
-	err := config.Map()
+func commandMap(areaName string) error {
+	results, err := api.Map()
 	if err != nil {
 		return err
 	}
 
-	for _, result := range config.Results {
-		fmt.Println(result.Name)
+	for _, result := range results {
+		fmt.Println(result.Display())
 	}
 
 	return nil
 }
 
-func commandMapB(config *pokeapi.Config) error {
-	err := config.MapB()
+func commandMapB(areaName string) error {
+	results, err := api.MapB()
 	if err != nil {
 		return err
 	}
 
-	for _, result := range config.Results {
-		fmt.Println(result.Name)
+	for _, result := range results {
+		fmt.Println(result.Display())
 	}
 
 	return nil
 }
 
-func commandHelp(config *pokeapi.Config) error {
+func commandHelp(areaName string) error {
 	fmt.Println()
 	fmt.Printf("Welcome to the Pokedex!\n")
 	fmt.Printf("Usage: \n")
@@ -97,7 +108,7 @@ func commandHelp(config *pokeapi.Config) error {
 	return nil
 }
 
-func commandExit(config *pokeapi.Config) error {
+func commandExit(areaName string) error {
 	os.Exit(0)
 	return nil
 }

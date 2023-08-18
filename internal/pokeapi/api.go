@@ -10,32 +10,30 @@ import (
 	"github.com/paulio84/go-pokedex/internal/pokecache"
 )
 
-type Config struct {
-	Next     *string
-	Previous *string
-	Results  []result
-}
-
-type result struct {
-	Name string
-}
-
 var cache *pokecache.Cache
 
-func NewConfig() *Config {
+func NewAPI() *Api {
 	defaultNext := "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
-	cache = pokecache.NewCache(10 * time.Second)
+	cache = pokecache.NewCache(1 * time.Minute)
 
-	return &Config{
-		Next:     &defaultNext,
-		Previous: nil,
-		Results:  nil,
+	return &Api{
+		mapConfig: &mapConfig{
+			Next:     &defaultNext,
+			Previous: nil,
+			Results:  nil,
+		},
 	}
 }
 
-func (c *Config) Map() error {
+func (api *Api) Map() ([]Result, error) {
+	err := api.mapConfig.mapF()
+
+	return api.mapConfig.convertMapResults(), err
+}
+
+func (c *mapConfig) mapF() error {
 	if c.Next == nil {
-		return errors.New("at the end of the Pokemon world")
+		return errors.New("at the edge of the Pokemon world")
 	}
 
 	err := c.getLocations(*c.Next)
@@ -46,7 +44,13 @@ func (c *Config) Map() error {
 	return nil
 }
 
-func (c *Config) MapB() error {
+func (api *Api) MapB() ([]Result, error) {
+	err := api.mapConfig.mapB()
+
+	return api.mapConfig.convertMapResults(), err
+}
+
+func (c *mapConfig) mapB() error {
 	if c.Previous == nil {
 		return errors.New("cannot go back any further")
 	}
@@ -59,7 +63,7 @@ func (c *Config) MapB() error {
 	return nil
 }
 
-func (c *Config) getLocations(url string) error {
+func (c *mapConfig) getLocations(url string) error {
 	var responseBody []byte
 	var ok bool
 	var err error
