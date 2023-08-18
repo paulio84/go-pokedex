@@ -24,18 +24,18 @@ func main() {
 	buildCommands()
 
 	for {
-		areaName := ""
+		arg := ""
 
 		fmt.Print("pokedex > ")
 		scanner.Scan()
 
 		words := strings.Fields(scanner.Text())
 		if len(words) > 1 {
-			areaName = words[1]
+			arg = words[1]
 		}
 
 		if command, ok := commands[words[0]]; ok {
-			err := command.callback(areaName)
+			err := command.callback(arg)
 			if err != nil {
 				fmt.Printf("error: %s\n", err.Error())
 			}
@@ -73,20 +73,20 @@ func buildCommands() {
 	}
 }
 
-func commandExplore(areaName string) error {
-	results, err := api.Explore(areaName)
+func commandExplore(arg string) error {
+	results, err := api.Explore(arg)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Exploring %s...\n", areaName)
+	fmt.Printf("Exploring %s...\n", arg)
 	fmt.Println("Found Pokemon:")
 	displayResults(results)
 
 	return nil
 }
 
-func commandMap(areaName string) error {
+func commandMap(arg string) error {
 	results, err := api.Map()
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func commandMap(areaName string) error {
 	return nil
 }
 
-func commandMapB(areaName string) error {
+func commandMapB(arg string) error {
 	results, err := api.MapB()
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func commandMapB(areaName string) error {
 	return nil
 }
 
-func commandHelp(areaName string) error {
+func commandHelp(arg string) error {
 	fmt.Println()
 	fmt.Printf("Welcome to the Pokedex!\n")
 	fmt.Printf("Usage: \n")
@@ -122,7 +122,7 @@ func commandHelp(areaName string) error {
 	return nil
 }
 
-func commandExit(areaName string) error {
+func commandExit(arg string) error {
 	os.Exit(0)
 	return nil
 }
