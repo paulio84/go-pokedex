@@ -79,6 +79,35 @@ func buildCommands() {
 		description: "Attempt to catch the Pokemon [pokemon_name]",
 		callback:    commandCatch,
 	}
+	commands["inspect"] = cliCommand{
+		name:        "inspect [pokemon_name]",
+		description: "Inspect a caught pokemon [pokemon_name]",
+		callback:    commandInspect,
+	}
+}
+
+func commandInspect(arg string) error {
+	if arg == "" {
+		return errors.New("you must enter a pokemon name")
+	}
+
+	if pokemon, ok := pokedex[arg]; !ok {
+		return fmt.Errorf("you have not caught %s", arg)
+	} else {
+		fmt.Printf("Name: %s\n", *pokemon.Name)
+		fmt.Printf("Height: %d\n", *pokemon.Height)
+		fmt.Printf("Weight: %d\n", *pokemon.Weight)
+		fmt.Println("Stats: ")
+		for _, v := range pokemon.Stats {
+			fmt.Printf("  - %s: %d\n", v.Stat.Name, v.BaseStat)
+		}
+		fmt.Println("Types: ")
+		for _, v := range pokemon.Types {
+			fmt.Printf("  - %s\n", v.Type.Name)
+		}
+	}
+
+	return nil
 }
 
 func commandCatch(arg string) error {
