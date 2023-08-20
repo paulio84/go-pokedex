@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 var commands map[string]cliCommand
 var api *pokeapi.Api
+var pokedex map[string]pokeapi.Pokemon
 
 type cliCommand struct {
 	name        string
@@ -22,6 +24,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	api = pokeapi.NewAPI()
 	buildCommands()
+	pokedex = make(map[string]pokeapi.Pokemon)
 
 	for {
 		arg := ""
@@ -71,9 +74,45 @@ func buildCommands() {
 		description: "Explore a given area [area_name] and display the Pokemon found there",
 		callback:    commandExplore,
 	}
+	commands["catch"] = cliCommand{
+		name:        "catch [pokemon_name]",
+		description: "Attempt to catch the Pokemon [pokemon_name]",
+		callback:    commandCatch,
+	}
+}
+
+func commandCatch(arg string) error {
+	if arg == "" {
+		return errors.New("you must enter a pokemon name")
+	}
+
+	if _, ok := pokedex[arg]; ok {
+		return fmt.Errorf("you've already caught %s", arg)
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", arg)
+
+	pokemon, err := api.Catch(arg)
+	if err != nil {
+		return err
+	}
+
+	if pokemon != nil {
+		fmt.Printf("%s was caught!\n", arg)
+		// add pokemon to our pokedex
+		pokedex[arg] = *pokemon
+		return nil
+	}
+
+	fmt.Printf("%s escaped!\n", arg)
+	return nil
 }
 
 func commandExplore(arg string) error {
+	if arg == "" {
+		return errors.New("you must enter an area name to explore")
+	}
+
 	results, err := api.Explore(arg)
 	if err != nil {
 		return err

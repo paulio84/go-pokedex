@@ -3,19 +3,12 @@ package pokeapi
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
-	"net/http"
-	"time"
-
-	"github.com/paulio84/go-pokedex/internal/pokecache"
+	"math/rand"
 )
-
-var cache *pokecache.Cache
 
 func NewAPI() *Api {
 	defaultNext := "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
-	cache = pokecache.NewCache(1 * time.Minute)
+	cache = initCache()
 
 	return &Api{
 		mapConfig: &mapConfig{
@@ -26,6 +19,14 @@ func NewAPI() *Api {
 		explore: &explore{
 			Name:              nil,
 			PokemonEncounters: nil,
+		},
+		pokemon: &Pokemon{
+			Name:           nil,
+			Height:         nil,
+			Weight:         nil,
+			BaseExperience: nil,
+			Stats:          nil,
+			Types:          nil,
 		},
 	}
 }
@@ -41,12 +42,13 @@ func (c *mapConfig) mapF() error {
 		return errors.New("at the edge of the Pokemon world")
 	}
 
-	err := c.getLocations(*c.Next)
+	responseBody, err := getLocations(*c.Next)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	err = json.Unmarshal(responseBody, &c)
+	return err
 }
 
 func (api *Api) MapB() ([]Result, error) {
@@ -60,44 +62,13 @@ func (c *mapConfig) mapB() error {
 		return errors.New("cannot go back any further")
 	}
 
-	err := c.getLocations(*c.Previous)
+	responseBody, err := getLocations(*c.Previous)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (c *mapConfig) getLocations(url string) error {
-	var responseBody []byte
-	var ok bool
-	var err error
-
-	// try to get the response body from the cache
-	responseBody, ok = cache.Get(url)
-	if !ok {
-		// get the response from the network
-		resp, err := http.Get(url)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		responseBody, err = io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		// store the response in the cache
-		cache.Add(url, responseBody)
 	}
 
 	err = json.Unmarshal(responseBody, &c)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (api *Api) Explore(areaName string) ([]Result, error) {
@@ -107,48 +78,34 @@ func (api *Api) Explore(areaName string) ([]Result, error) {
 }
 
 func (e *explore) explore(areaName string) error {
-	err := e.getPokemonByArea(areaName)
+	responseBody, err := getPokemonByArea(areaName)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (e *explore) getPokemonByArea(areaName string) error {
-	var responseBody []byte
-	var ok bool
-	var err error
-
-	url := "https://pokeapi.co/api/v2/location-area/" + areaName
-
-	// try to get the response body from the cache
-	responseBody, ok = cache.Get(url)
-	if !ok {
-		// get the response from the network
-		resp, err := http.Get(url)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode == 404 {
-			return fmt.Errorf("invalid area name: %s", areaName)
-		}
-
-		responseBody, err = io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		// store the response in the cache
-		cache.Add(url, responseBody)
 	}
 
 	err = json.Unmarshal(responseBody, &e)
+	return err
+}
+
+func (api *Api) Catch(pokemonName string) (*Pokemon, error) {
+	err := api.pokemon.catch(pokemonName)
+
+	// determine whether the pokemon is caught
+	chance := baseExpChance(*api.pokemon.BaseExperience)
+	roll := rand.Intn(10) + 1 // roll a 1-10
+	if roll > chance {
+		api.pokemon = nil
+	}
+
+	return api.pokemon, err
+}
+
+func (p *Pokemon) catch(pokemonName string) error {
+	responseBody, err := catchPokemon(pokemonName)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	err = json.Unmarshal(responseBody, &p)
+	return err
 }
