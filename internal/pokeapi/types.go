@@ -34,8 +34,6 @@ type Result interface {
 
 type Api struct {
 	mapConfig *mapConfig
-	explore   *explore
-	pokemon   *Pokemon
 }
 
 type mapConfig struct {
@@ -75,7 +73,6 @@ func (e explore) convertPokemonEncounters() []Result {
 
 type pokemon struct {
 	Name string `json:"name"`
-	// URL  string `json:"url"`
 }
 
 type pokemonEncounters struct {

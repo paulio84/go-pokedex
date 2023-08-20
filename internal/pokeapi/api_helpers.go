@@ -11,7 +11,7 @@ import (
 
 var cache *pokecache.Cache
 
-func initCache() *pokecache.Cache {
+func initialiseCache() *pokecache.Cache {
 	return pokecache.NewCache(1 * time.Minute)
 }
 
@@ -109,23 +109,5 @@ func newMapConfig() *mapConfig {
 		Next:     &defaultNext,
 		Previous: nil,
 		Results:  nil,
-	}
-}
-
-func newExplore() *explore {
-	return &explore{
-		Name:              nil,
-		PokemonEncounters: nil,
-	}
-}
-
-func newPokemon() *Pokemon {
-	return &Pokemon{
-		Name:           nil,
-		Height:         nil,
-		Weight:         nil,
-		BaseExperience: nil,
-		Stats:          nil,
-		Types:          nil,
 	}
 }

@@ -7,12 +7,10 @@ import (
 )
 
 func NewAPI() *Api {
-	cache = initCache()
+	cache = initialiseCache()
 
 	return &Api{
 		mapConfig: newMapConfig(),
-		explore:   newExplore(),
-		pokemon:   newPokemon(),
 	}
 }
 
@@ -57,45 +55,47 @@ func (c *mapConfig) mapB() error {
 }
 
 func (api *Api) Explore(areaName string) ([]Result, error) {
-	err := api.explore.explore(areaName)
+	exploreArea, err := exploreArea(areaName)
 
-	return api.explore.convertPokemonEncounters(), err
+	return exploreArea.convertPokemonEncounters(), err
 }
 
-func (e *explore) explore(areaName string) error {
+func exploreArea(areaName string) (explore, error) {
+	var explore explore
+
 	responseBody, err := getPokemonByArea(areaName)
 	if err != nil {
-		return err
+		return explore, err
 	}
 
-	err = json.Unmarshal(responseBody, &e)
-	return err
+	err = json.Unmarshal(responseBody, &explore)
+	return explore, err
 }
 
 func (api *Api) Catch(pokemonName string) (Pokemon, error, bool) {
-	err := api.pokemon.catch(pokemonName)
+	pokemon, err := catch(pokemonName)
 	var caught bool
 
 	// determine whether the pokemon is caught
 	if err == nil {
-		caught = true
-		chance := baseExpChance(*api.pokemon.BaseExperience)
+		chance := baseExpChance(*pokemon.BaseExperience)
 		roll := rand.Intn(10) + 1 // roll a 1-10
-		if roll > chance {
-			api.pokemon = newPokemon()
-			caught = false
+		if roll <= chance {
+			caught = true
 		}
 	}
 
-	return *api.pokemon, err, caught
+	return pokemon, err, caught
 }
 
-func (p *Pokemon) catch(pokemonName string) error {
+func catch(pokemonName string) (Pokemon, error) {
+	var pokemon Pokemon
+
 	responseBody, err := catchPokemon(pokemonName)
 	if err != nil {
-		return err
+		return pokemon, err
 	}
 
-	err = json.Unmarshal(responseBody, &p)
-	return err
+	err = json.Unmarshal(responseBody, &pokemon)
+	return pokemon, err
 }
