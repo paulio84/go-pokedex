@@ -84,6 +84,24 @@ func buildCommands() {
 		description: "Inspect a caught pokemon [pokemon_name]",
 		callback:    commandInspect,
 	}
+	commands["pokedex"] = cliCommand{
+		name:        "pokedex",
+		description: "Display the Pokemon you have caught in your Pokedex",
+		callback:    commandPokedex,
+	}
+}
+
+func commandPokedex(arg string) error {
+	if len(pokedex) == 0 {
+		fmt.Println("You have not caught any Pokemon yet!")
+		return nil
+	}
+
+	fmt.Println("Your Pokedex:")
+	for _, v := range pokedex {
+		fmt.Printf(" - %s\n", *v.Name)
+	}
+	return nil
 }
 
 func commandInspect(arg string) error {
@@ -121,15 +139,16 @@ func commandCatch(arg string) error {
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", arg)
 
-	pokemon, err := api.Catch(arg)
+	pokemon, err, caught := api.Catch(arg)
 	if err != nil {
 		return err
 	}
 
-	if pokemon != nil {
+	if caught {
 		fmt.Printf("%s was caught!\n", arg)
+		fmt.Println("You may now inspect it with the inspect command.")
 		// add pokemon to our pokedex
-		pokedex[arg] = *pokemon
+		pokedex[arg] = pokemon
 		return nil
 	}
 

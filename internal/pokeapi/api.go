@@ -7,27 +7,12 @@ import (
 )
 
 func NewAPI() *Api {
-	defaultNext := "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
 	cache = initCache()
 
 	return &Api{
-		mapConfig: &mapConfig{
-			Next:     &defaultNext,
-			Previous: nil,
-			Results:  nil,
-		},
-		explore: &explore{
-			Name:              nil,
-			PokemonEncounters: nil,
-		},
-		pokemon: &Pokemon{
-			Name:           nil,
-			Height:         nil,
-			Weight:         nil,
-			BaseExperience: nil,
-			Stats:          nil,
-			Types:          nil,
-		},
+		mapConfig: newMapConfig(),
+		explore:   newExplore(),
+		pokemon:   newPokemon(),
 	}
 }
 
@@ -87,17 +72,22 @@ func (e *explore) explore(areaName string) error {
 	return err
 }
 
-func (api *Api) Catch(pokemonName string) (*Pokemon, error) {
+func (api *Api) Catch(pokemonName string) (Pokemon, error, bool) {
 	err := api.pokemon.catch(pokemonName)
+	var caught bool
 
 	// determine whether the pokemon is caught
-	chance := baseExpChance(*api.pokemon.BaseExperience)
-	roll := rand.Intn(10) + 1 // roll a 1-10
-	if roll > chance {
-		api.pokemon = nil
+	if err == nil {
+		caught = true
+		chance := baseExpChance(*api.pokemon.BaseExperience)
+		roll := rand.Intn(10) + 1 // roll a 1-10
+		if roll > chance {
+			api.pokemon = newPokemon()
+			caught = false
+		}
 	}
 
-	return api.pokemon, err
+	return *api.pokemon, err, caught
 }
 
 func (p *Pokemon) catch(pokemonName string) error {

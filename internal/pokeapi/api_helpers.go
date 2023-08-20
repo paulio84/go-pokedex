@@ -65,6 +65,10 @@ func makeRequest(url string) ([]byte, int, error) {
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode == 404 {
+			return nil, resp.StatusCode, nil
+		}
+
 		responseBody, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, resp.StatusCode, err
@@ -95,5 +99,33 @@ func baseExpChance(baseExp int) int {
 		return 2
 	default:
 		return 1
+	}
+}
+
+func newMapConfig() *mapConfig {
+	defaultNext := "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
+
+	return &mapConfig{
+		Next:     &defaultNext,
+		Previous: nil,
+		Results:  nil,
+	}
+}
+
+func newExplore() *explore {
+	return &explore{
+		Name:              nil,
+		PokemonEncounters: nil,
+	}
+}
+
+func newPokemon() *Pokemon {
+	return &Pokemon{
+		Name:           nil,
+		Height:         nil,
+		Weight:         nil,
+		BaseExperience: nil,
+		Stats:          nil,
+		Types:          nil,
 	}
 }
