@@ -32,7 +32,7 @@ type Result interface {
 	Display() string
 }
 
-type Api struct {
+type API struct {
 	mapConfig *mapConfig
 }
 

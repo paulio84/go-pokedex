@@ -6,15 +6,15 @@ import (
 	"math/rand"
 )
 
-func NewAPI() *Api {
+func NewAPI() *API {
 	cache = initialiseCache()
 
-	return &Api{
+	return &API{
 		mapConfig: newMapConfig(),
 	}
 }
 
-func (api *Api) Map() ([]Result, error) {
+func (api *API) Map() ([]Result, error) {
 	err := api.mapConfig.mapF()
 
 	return api.mapConfig.convertMapResults(), err
@@ -34,7 +34,7 @@ func (c *mapConfig) mapF() error {
 	return err
 }
 
-func (api *Api) MapB() ([]Result, error) {
+func (api *API) MapB() ([]Result, error) {
 	err := api.mapConfig.mapB()
 
 	return api.mapConfig.convertMapResults(), err
@@ -54,7 +54,7 @@ func (c *mapConfig) mapB() error {
 	return err
 }
 
-func (api *Api) Explore(areaName string) ([]Result, error) {
+func (api *API) Explore(areaName string) ([]Result, error) {
 	exploreArea, err := exploreArea(areaName)
 
 	return exploreArea.convertPokemonEncounters(), err
@@ -72,7 +72,7 @@ func exploreArea(areaName string) (explore, error) {
 	return explore, err
 }
 
-func (api *Api) Catch(pokemonName string) (Pokemon, error, bool) {
+func (api *API) Catch(pokemonName string) (Pokemon, bool, error) {
 	pokemon, err := catch(pokemonName)
 	var caught bool
 
@@ -85,7 +85,7 @@ func (api *Api) Catch(pokemonName string) (Pokemon, error, bool) {
 		}
 	}
 
-	return pokemon, err, caught
+	return pokemon, caught, err
 }
 
 func catch(pokemonName string) (Pokemon, error) {

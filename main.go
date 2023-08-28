@@ -11,7 +11,7 @@ import (
 )
 
 var commands map[string]cliCommand
-var api *pokeapi.Api
+var api *pokeapi.API
 var pokedex map[string]pokeapi.Pokemon
 
 type cliCommand struct {
@@ -109,20 +109,21 @@ func commandInspect(arg string) error {
 		return errors.New("you must enter a pokemon name")
 	}
 
-	if pokemon, ok := pokedex[arg]; !ok {
+	pokemon, ok := pokedex[arg]
+	if !ok {
 		return fmt.Errorf("you have not caught %s", arg)
-	} else {
-		fmt.Printf("Name: %s\n", *pokemon.Name)
-		fmt.Printf("Height: %d\n", *pokemon.Height)
-		fmt.Printf("Weight: %d\n", *pokemon.Weight)
-		fmt.Println("Stats: ")
-		for _, v := range pokemon.Stats {
-			fmt.Printf("  - %s: %d\n", v.Stat.Name, v.BaseStat)
-		}
-		fmt.Println("Types: ")
-		for _, v := range pokemon.Types {
-			fmt.Printf("  - %s\n", v.Type.Name)
-		}
+	}
+
+	fmt.Printf("Name: %s\n", *pokemon.Name)
+	fmt.Printf("Height: %d\n", *pokemon.Height)
+	fmt.Printf("Weight: %d\n", *pokemon.Weight)
+	fmt.Println("Stats: ")
+	for _, v := range pokemon.Stats {
+		fmt.Printf("  - %s: %d\n", v.Stat.Name, v.BaseStat)
+	}
+	fmt.Println("Types: ")
+	for _, v := range pokemon.Types {
+		fmt.Printf("  - %s\n", v.Type.Name)
 	}
 
 	return nil
@@ -139,7 +140,7 @@ func commandCatch(arg string) error {
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", arg)
 
-	pokemon, err, caught := api.Catch(arg)
+	pokemon, caught, err := api.Catch(arg)
 	if err != nil {
 		return err
 	}
